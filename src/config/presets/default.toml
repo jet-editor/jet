@@ -1,0 +1,5 @@
+theme = "default"
+keymap = "default"
+tab_width = 4
+lsp = true
+highlight = true

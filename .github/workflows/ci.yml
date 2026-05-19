@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --workspace -- -D warnings
+      - run: cargo test --locked --workspace
+
+  package:
+    name: Package ${{ matrix.archive }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            binary: jet
+            archive: jet-linux-x86_64.tar.gz
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            binary: jet
+            archive: jet-linux-aarch64.tar.gz
+          - target: x86_64-apple-darwin
+            os: macos-13
+            binary: jet
+            archive: jet-macos-x86_64.tar.gz
+          - target: aarch64-apple-darwin
+            os: macos-14
+            binary: jet
+            archive: jet-macos-aarch64.tar.gz
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            binary: jet.exe
+            archive: jet-windows-x86_64.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: taiki-e/install-action@cross
+        if: contains(matrix.target, 'linux')
+
+      - name: Build Linux target
+        if: contains(matrix.target, 'linux')
+        run: cross build --release --locked --target ${{ matrix.target }}
+
+      - name: Build native target
+        if: ${{ !contains(matrix.target, 'linux') }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Package and verify tar archive
+        if: ${{ !endsWith(matrix.archive, '.zip') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          binary="target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          test -x "$binary"
+          mkdir -p dist verify
+          cp "$binary" "dist/${{ matrix.binary }}"
+          (cd dist && tar -czf "../${{ matrix.archive }}" "${{ matrix.binary }}")
+          tar -xzf "${{ matrix.archive }}" -C verify
+          test -x "verify/${{ matrix.binary }}"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "${{ matrix.archive }}" > "${{ matrix.archive }}.sha256"
+          else
+            shasum -a 256 "${{ matrix.archive }}" > "${{ matrix.archive }}.sha256"
+          fi
+
+      - name: Package and verify zip archive
+        if: ${{ endsWith(matrix.archive, '.zip') }}
+        shell: pwsh
+        run: |
+          $binary = "target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          if (!(Test-Path $binary)) { throw "missing binary: $binary" }
+          New-Item -ItemType Directory -Force -Path dist, verify | Out-Null
+          Copy-Item $binary "dist/${{ matrix.binary }}"
+          Compress-Archive -Path "dist/${{ matrix.binary }}" -DestinationPath "${{ matrix.archive }}" -Force
+          Expand-Archive -LiteralPath "${{ matrix.archive }}" -DestinationPath verify -Force
+          if (!(Test-Path "verify/${{ matrix.binary }}")) { throw "archive missing ${{ matrix.binary }}" }
+          (Get-FileHash "${{ matrix.archive }}" -Algorithm SHA256).Hash.ToLower() + "  ${{ matrix.archive }}" | Out-File -Encoding ascii "${{ matrix.archive }}.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: |
+            ${{ matrix.archive }}
+            ${{ matrix.archive }}.sha256
+
+      - name: Verified artifact summary
+        run: |
+          {
+            echo '## Verified Release Artifact'
+            echo ''
+            echo 'This CI job built, packaged, unpacked, and verified this archive:'
+            echo ''
+            echo '| Target | Archive | Contents |'
+            echo '| --- | --- | --- |'
+            echo '| ${{ matrix.target }} | ${{ matrix.archive }} | ${{ matrix.binary }} |'
+          } >> "$GITHUB_STEP_SUMMARY"

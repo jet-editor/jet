@@ -1,0 +1,50 @@
+# Rust build output
+/target/
+**/*.rs.bk
+*.profraw
+*.pdb
+*.dSYM/
+
+# Generated benchmark fixtures and local performance captures
+/benchdata/
+/tmp/
+/criterion/
+perf.data*
+flamegraph.svg
+
+# Test/debug output generated during local runs
+test_output*.txt
+*_debug.txt
+*.log
+*.tmp
+*.trace
+
+# Remotion / Node.js
+node_modules/
+docs/screenshots/remotion/output.gif
+docs/screenshots/remotion/output.mp4
+docs/screenshots/remotion/out/
+
+# Generated archives
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Local installer dry-run directories
+jet-doc-check/
+
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Agent / tool artifacts
+.agents/
+.codex/
+
+# Local environment files
+.env
+.env.*

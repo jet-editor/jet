@@ -1,0 +1,5 @@
+theme = "default"
+keymap = "vscode"
+tab_width = 4
+lsp = true
+highlight = true

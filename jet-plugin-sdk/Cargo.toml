@@ -1,0 +1,17 @@
+[package]
+name = "jet-plugin-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "SDK for creating Jet editor plugins in Rust (compiled to WASM)"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+toml = { version = "0.8", optional = true }
+
+[features]
+default = []
+manifest = ["serde", "toml"]

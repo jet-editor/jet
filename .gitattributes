@@ -1,0 +1,27 @@
+* text=auto
+
+# Source files should be LF
+*.rs text eol=lf
+*.toml text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+
+# Windows-specific scripts
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
+*.wasm binary
+*.wat binary

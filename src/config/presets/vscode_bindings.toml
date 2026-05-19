@@ -1,0 +1,3 @@
+[keybindings.normal]
+"ctrl-p" = "files"
+"ctrl-shift-f" = "grep"

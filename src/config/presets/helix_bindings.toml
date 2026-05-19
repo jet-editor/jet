@@ -1,0 +1,8 @@
+[keybindings.normal]
+"space g" = "grep"
+"space d" = "diagnostics"
+"space f" = "files"
+
+[keybindings.space]
+"s" = "write"
+"q" = "quit"

@@ -1,0 +1,16 @@
+name = "hello"
+version = "0.1.0"
+description = "A simple greeting plugin"
+author = "Jet Editor"
+engine = "jet >= 1.0.0"
+permissions = ["ui:write"]
+
+[hooks]
+on_buffer_open = true
+on_cursor_move = false
+on_buffer_save = true
+
+[[commands]]
+event = "plugin_loaded"
+kind = "message"
+text = "Hello plugin loaded!"
